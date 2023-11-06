@@ -1,4 +1,5 @@
 import tkinter as tk
+from tkinter import ttk
 import pywhatkit
 
 def send_whatsapp_message():
@@ -14,30 +15,30 @@ def send_whatsapp_message():
 root = tk.Tk()
 root.title("WhatsApp Message Sender")
 
-# Create and pack labels and entry fields
-phone_label = tk.Label(root, text="Phone Number:")
-phone_label.pack()
-phone_entry = tk.Entry(root)
-phone_entry.pack()
+# Create and pack labels and entry fields with improved style
+phone_label = ttk.Label(root, text="Phone Number:")
+phone_label.grid(row=0, column=0, padx=10, pady=5, sticky=tk.W)
+phone_entry = ttk.Entry(root)
+phone_entry.grid(row=0, column=1, padx=10, pady=5)
 
-message_label = tk.Label(root, text="Message:")
-message_label.pack()
-message_entry = tk.Entry(root)
-message_entry.pack()
+message_label = ttk.Label(root, text="Message:")
+message_label.grid(row=1, column=0, padx=10, pady=5, sticky=tk.W)
+message_entry = ttk.Entry(root)
+message_entry.grid(row=1, column=1, padx=10, pady=5)
 
-time_label = tk.Label(root, text="Send at (HH:MM):")
-time_label.pack()
-hours_entry = tk.Entry(root)
-hours_entry.pack()
-minutes_entry = tk.Entry(root)
-minutes_entry.pack()
+time_label = ttk.Label(root, text="Send at (HH:MM):")
+time_label.grid(row=2, column=0, padx=10, pady=5, sticky=tk.W)
+hours_entry = ttk.Entry(root)
+hours_entry.grid(row=2, column=1, padx=10, pady=5)
+minutes_entry = ttk.Entry(root)
+minutes_entry.grid(row=2, column=2, padx=10, pady=5)
 
-# Create and pack the send button
-send_button = tk.Button(root, text="Send Message", command=send_whatsapp_message)
-send_button.pack()
+# Create and pack the send button with improved style
+send_button = ttk.Button(root, text="Send Message", command=send_whatsapp_message)
+send_button.grid(row=3, column=0, columnspan=2, padx=10, pady=10)
 
-# Create and pack the result label
-result_label = tk.Label(root, text="")
-result_label.pack()
+# Create and pack the result label with improved style
+result_label = ttk.Label(root, text="")
+result_label.grid(row=4, column=0, columnspan=2, padx=10, pady=5)
 
 root.mainloop()
