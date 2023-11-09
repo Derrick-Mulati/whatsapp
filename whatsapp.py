@@ -23,11 +23,8 @@ phone_entry.grid(row=0, column=1, padx=10, pady=5)
 
 message_label = ttk.Label(root, text="Message:")
 message_label.grid(row=1, column=0, padx=10, pady=5, sticky=tk.W)
-
-# Increase the columnspan to make the text box span multiple columns
 message_entry = ttk.Entry(root)
-message_entry.grid(row=1, column=1, columnspan=2, padx=10, pady=5)
-
+message_entry.grid(row=1, column=1, padx=10, pady=5)
 
 time_label = ttk.Label(root, text="Send at (HH:MM):")
 time_label.grid(row=2, column=0, padx=10, pady=5, sticky=tk.W)
