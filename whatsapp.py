@@ -13,7 +13,7 @@ def send_whatsapp_message():
 
 # Create the main window
 root = tk.Tk()
-root.title("WhatsApp Message Sender")
+root.title("WhatsApp Message Scheduler")
 
 # Create and pack labels and entry fields with improved style
 phone_label = ttk.Label(root, text="Phone Number:")
