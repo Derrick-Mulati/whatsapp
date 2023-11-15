@@ -1,5 +1,6 @@
 import tkinter as tk
 from tkinter import ttk
+from customtkinter import *
 import pywhatkit
 
 def send_whatsapp_message():
@@ -12,7 +13,7 @@ def send_whatsapp_message():
     result_label.config(text="Message sent successfully!")
 
 # Create the main window
-root = tk.Tk()
+root = ThemedTk(theme="equilux")
 root.title("WhatsApp Message Scheduler")
 
 # Create and pack labels and entry fields with improved style
