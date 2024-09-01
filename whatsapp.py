@@ -70,28 +70,43 @@ def main():
 
     root = ctk.CTk()  # Use CTk() to create the main window
     root.title("WhatsApp Message Scheduler")
-    
+
+    # Configure grid weights to center elements
+    root.grid_columnconfigure(0, weight=1)
+    root.grid_columnconfigure(1, weight=1)
+    root.grid_columnconfigure(2, weight=1)
+    root.grid_rowconfigure(0, weight=1)
+    root.grid_rowconfigure(1, weight=1)
+    root.grid_rowconfigure(2, weight=1)
+    root.grid_rowconfigure(3, weight=1)
+    root.grid_rowconfigure(4, weight=1)
+
     # Load Contacts Button
     load_contacts_button = create_button(root, "Load Contacts", load_contacts_from_csv, 0, 0, 3, 10, 10)
+    load_contacts_button.grid(row=0, column=0, columnspan=3, padx=10, pady=10, sticky="ew")
 
     contact_label = create_label(root, "Select Contact:", 1, 0, 10, 5)
+    contact_label.grid(row=1, column=0, padx=10, pady=5, sticky="e")
 
     # Dropdown menu to select a contact
     global selected_contact, contact_menu
     selected_contact = tk.StringVar(root)
     selected_contact.set("Select a contact")  # Default value before loading contacts
     contact_menu = ctk.CTkOptionMenu(root, variable=selected_contact, values=list(contacts.keys()))
-    contact_menu.grid(row=1, column=1, columnspan=2, padx=10, pady=5)
+    contact_menu.grid(row=1, column=1, columnspan=2, padx=10, pady=5, sticky="ew")
 
     message_label = create_label(root, "Message:", 2, 0, 10, 5)
+    message_label.grid(row=2, column=0, padx=10, pady=5, sticky="e")
+    
     message_entry = ctk.CTkEntry(root, font=("Helvetica", 14), width=300, height=100)  # Increased size and font
-    message_entry.grid(row=2, column=1, columnspan=2, padx=10, pady=10)
+    message_entry.grid(row=2, column=1, columnspan=2, padx=10, pady=10, sticky="ew")
 
     time_label = create_label(root, "Send at (HH:MM):", 3, 0, 10, 5)
+    time_label.grid(row=3, column=0, padx=10, pady=5, sticky="e")
     
     # Frame for the time selection (clock interface)
     time_frame = tk.Frame(root)
-    time_frame.grid(row=3, column=1, columnspan=2, padx=10, pady=5, sticky="w")
+    time_frame.grid(row=3, column=1, columnspan=2, padx=10, pady=5, sticky="ew")
 
     # Set the default time to 07:00 using Spinboxes
     hours_spinbox = create_spinbox(time_frame, 0, 23, 0, 0, 5, 5, "07")
@@ -99,6 +114,7 @@ def main():
     minutes_spinbox = create_spinbox(time_frame, 0, 59, 0, 2, 5, 5, "00")
 
     result_label = create_label(root, "", 4, 0, 10, 5, tk.W)
+    result_label.grid(row=4, column=0, columnspan=3, padx=10, pady=5, sticky="ew")
 
     def on_send_button_click():
         contact_name = selected_contact.get()
@@ -112,6 +128,7 @@ def main():
             result_label.config(text="Please select a contact.")
 
     send_button = create_button(root, "Send Message", on_send_button_click, 4, 0, 3, 10, 10)
+    send_button.grid(row=4, column=0, columnspan=3, padx=10, pady=10, sticky="ew")
 
     root.mainloop()
 
