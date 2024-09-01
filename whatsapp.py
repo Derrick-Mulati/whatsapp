@@ -7,6 +7,18 @@ import pandas as pd
 # Initialize an empty dictionary for contacts
 contacts = {}
 
+def format_phone_number(number):
+    """Formats phone numbers based on specific rules."""
+    number = number.strip()  # Remove any leading or trailing whitespace
+    if number.startswith("2"):
+        return f"+{number}"
+    elif number.startswith("7"):
+        return f"+254{number[1:]}"  # Replace the leading 7 with +254
+    elif number.startswith("0"):
+        return f"+254{number[1:]}"  # Replace the leading 0 with +254
+    else:
+        return number
+
 def load_contacts_from_csv():
     # Open file dialog to select a CSV file
     file_path = filedialog.askopenfilename(filetypes=[("CSV files", "*.csv")])
@@ -17,9 +29,9 @@ def load_contacts_from_csv():
             
             # Ensure the CSV has the correct columns: 'Name' and 'Phone'
             if 'Name' in df.columns and 'Phone' in df.columns:
-                # Update the contacts dictionary
+                # Format and update the contacts dictionary
                 global contacts
-                contacts = dict(zip(df['Name'], df['Phone']))
+                contacts = {name: format_phone_number(phone) for name, phone in zip(df['Name'], df['Phone'])}
                 
                 # Update the dropdown menu
                 contact_menu['values'] = list(contacts.keys())
@@ -85,7 +97,7 @@ def main():
     tk.Label(time_frame, text=":", font=("Helvetica", 12)).grid(row=0, column=1)
     minutes_spinbox = create_spinbox(time_frame, 0, 59, 0, 2, 5, 5, "00")
 
-    result_label = create_label(root, "", 5, 0, 10, 5, tk.W)
+    result_label = create_label(root, "", 4, 0, 10, 5, tk.W)
 
     def on_send_button_click():
         contact_name = selected_contact.get()
