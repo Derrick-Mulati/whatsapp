@@ -20,7 +20,7 @@ def format_phone_number(number):
         return number
 
 def load_contacts_from_csv():
-    # Open file dialog to select a CSV file
+    """Load contacts from a CSV file and update the dropdown menu."""
     file_path = filedialog.askopenfilename(filetypes=[("CSV files", "*.csv")])
     if file_path:
         try:
@@ -36,6 +36,7 @@ def load_contacts_from_csv():
                 # Update the dropdown menu
                 contact_menu['values'] = list(contacts.keys())
                 selected_contact.set(next(iter(contacts)))  # Reset to first contact
+
                 messagebox.showinfo("Success", "Contacts loaded successfully!")
             else:
                 messagebox.showerror("Error", "CSV file must have 'Name' and 'Phone' columns.")
