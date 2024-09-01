@@ -35,7 +35,8 @@ def load_contacts_from_csv():
                 
                 # Update the dropdown menu
                 contact_menu['values'] = list(contacts.keys())
-                selected_contact.set(next(iter(contacts)))  # Reset to first contact
+                if contacts:
+                    selected_contact.set(next(iter(contacts)))  # Reset to first contact
 
                 messagebox.showinfo("Success", "Contacts loaded successfully!")
             else:
@@ -92,7 +93,7 @@ def main():
     global selected_contact, contact_menu
     selected_contact = tk.StringVar(root)
     selected_contact.set("Select a contact")  # Default value before loading contacts
-    contact_menu = ctk.CTkOptionMenu(root, variable=selected_contact, values=list(contacts.keys()))
+    contact_menu = ctk.CTkOptionMenu(root, variable=selected_contact, values=[])
     contact_menu.grid(row=1, column=1, columnspan=2, padx=10, pady=5, sticky="ew")
 
     message_label = create_label(root, "Message:", 2, 0, 10, 5)
