@@ -2,6 +2,13 @@ import tkinter as tk
 import customtkinter as ctk  # Correct import for customtkinter
 import pywhatkit
 
+# Predefined list of contacts
+contacts = {
+    "Alice": "+1234567890",
+    "Bob": "+0987654321",
+    "Charlie": "+1122334455"
+}
+
 def send_whatsapp_message(phone_number, message, hours, minutes, result_label):
     pywhatkit.sendwhatmsg(phone_number, message, hours, minutes)
     result_label.config(text="Message sent successfully!")
@@ -30,9 +37,13 @@ def main():
     root = ctk.CTk()  # Use CTk() to create the main window
     root.title("WhatsApp Message Scheduler")
     
-    phone_label = create_label(root, "Phone Number:", 0, 0, 10, 5)
-    phone_entry = ctk.CTkEntry(root)
-    phone_entry.grid(row=0, column=1, columnspan=2, padx=10, pady=5)
+    contact_label = create_label(root, "Select Contact:", 0, 0, 10, 5)
+
+    # Dropdown menu to select a contact
+    selected_contact = tk.StringVar(root)
+    selected_contact.set(next(iter(contacts)))  # Set default contact
+    contact_menu = ctk.CTkOptionMenu(root, variable=selected_contact, values=list(contacts.keys()))
+    contact_menu.grid(row=0, column=1, columnspan=2, padx=10, pady=5)
 
     message_label = create_label(root, "Message:", 1, 0, 10, 5)
     message_entry = ctk.CTkEntry(root, font=("Helvetica", 14), width=300, height=100)  # Increased size and font
@@ -52,7 +63,8 @@ def main():
     result_label = create_label(root, "", 4, 0, 10, 5, tk.W)
 
     def on_send_button_click():
-        phone_number = phone_entry.get()
+        contact_name = selected_contact.get()
+        phone_number = contacts[contact_name]
         message = message_entry.get()
         hours = int(hours_spinbox.get())
         minutes = int(minutes_spinbox.get())
