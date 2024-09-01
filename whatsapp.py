@@ -1,13 +1,34 @@
 import tkinter as tk
+from tkinter import filedialog, messagebox
 import customtkinter as ctk  # Correct import for customtkinter
 import pywhatkit
+import pandas as pd
 
-# Predefined list of contacts
-contacts = {
-    "Alice": "+1234567890",
-    "Bob": "+0987654321",
-    "Charlie": "+1122334455"
-}
+# Initialize an empty dictionary for contacts
+contacts = {}
+
+def load_contacts_from_csv():
+    # Open file dialog to select a CSV file
+    file_path = filedialog.askopenfilename(filetypes=[("CSV files", "*.csv")])
+    if file_path:
+        try:
+            # Load the CSV file into a pandas DataFrame
+            df = pd.read_csv(file_path)
+            
+            # Ensure the CSV has the correct columns: 'Name' and 'Phone'
+            if 'Name' in df.columns and 'Phone' in df.columns:
+                # Update the contacts dictionary
+                global contacts
+                contacts = dict(zip(df['Name'], df['Phone']))
+                
+                # Update the dropdown menu
+                contact_menu['values'] = list(contacts.keys())
+                selected_contact.set(next(iter(contacts)))  # Reset to first contact
+                messagebox.showinfo("Success", "Contacts loaded successfully!")
+            else:
+                messagebox.showerror("Error", "CSV file must have 'Name' and 'Phone' columns.")
+        except Exception as e:
+            messagebox.showerror("Error", f"Failed to load contacts: {str(e)}")
 
 def send_whatsapp_message(phone_number, message, hours, minutes, result_label):
     pywhatkit.sendwhatmsg(phone_number, message, hours, minutes)
@@ -37,40 +58,47 @@ def main():
     root = ctk.CTk()  # Use CTk() to create the main window
     root.title("WhatsApp Message Scheduler")
     
-    contact_label = create_label(root, "Select Contact:", 0, 0, 10, 5)
+    # Load Contacts Button
+    load_contacts_button = create_button(root, "Load Contacts", load_contacts_from_csv, 0, 0, 3, 10, 10)
+
+    contact_label = create_label(root, "Select Contact:", 1, 0, 10, 5)
 
     # Dropdown menu to select a contact
+    global selected_contact, contact_menu
     selected_contact = tk.StringVar(root)
-    selected_contact.set(next(iter(contacts)))  # Set default contact
+    selected_contact.set("Select a contact")  # Default value before loading contacts
     contact_menu = ctk.CTkOptionMenu(root, variable=selected_contact, values=list(contacts.keys()))
-    contact_menu.grid(row=0, column=1, columnspan=2, padx=10, pady=5)
+    contact_menu.grid(row=1, column=1, columnspan=2, padx=10, pady=5)
 
-    message_label = create_label(root, "Message:", 1, 0, 10, 5)
+    message_label = create_label(root, "Message:", 2, 0, 10, 5)
     message_entry = ctk.CTkEntry(root, font=("Helvetica", 14), width=300, height=100)  # Increased size and font
-    message_entry.grid(row=1, column=1, columnspan=2, padx=10, pady=10)
+    message_entry.grid(row=2, column=1, columnspan=2, padx=10, pady=10)
 
-    time_label = create_label(root, "Send at (HH:MM):", 2, 0, 10, 5)
+    time_label = create_label(root, "Send at (HH:MM):", 3, 0, 10, 5)
     
     # Frame for the time selection (clock interface)
     time_frame = tk.Frame(root)
-    time_frame.grid(row=2, column=1, columnspan=2, padx=10, pady=5, sticky="w")
+    time_frame.grid(row=3, column=1, columnspan=2, padx=10, pady=5, sticky="w")
 
     # Set the default time to 07:00 using Spinboxes
     hours_spinbox = create_spinbox(time_frame, 0, 23, 0, 0, 5, 5, "07")
     tk.Label(time_frame, text=":", font=("Helvetica", 12)).grid(row=0, column=1)
     minutes_spinbox = create_spinbox(time_frame, 0, 59, 0, 2, 5, 5, "00")
 
-    result_label = create_label(root, "", 4, 0, 10, 5, tk.W)
+    result_label = create_label(root, "", 5, 0, 10, 5, tk.W)
 
     def on_send_button_click():
         contact_name = selected_contact.get()
-        phone_number = contacts[contact_name]
-        message = message_entry.get()
-        hours = int(hours_spinbox.get())
-        minutes = int(minutes_spinbox.get())
-        send_whatsapp_message(phone_number, message, hours, minutes, result_label)
+        phone_number = contacts.get(contact_name, None)
+        if phone_number:
+            message = message_entry.get()
+            hours = int(hours_spinbox.get())
+            minutes = int(minutes_spinbox.get())
+            send_whatsapp_message(phone_number, message, hours, minutes, result_label)
+        else:
+            result_label.config(text="Please select a contact.")
 
-    send_button = create_button(root, "Send Message", on_send_button_click, 3, 0, 3, 10, 10)
+    send_button = create_button(root, "Send Message", on_send_button_click, 4, 0, 3, 10, 10)
 
     root.mainloop()
 
