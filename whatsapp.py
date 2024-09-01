@@ -11,10 +11,12 @@ def create_label(parent, text, row, column, padx, pady, sticky=tk.W):
     label.grid(row=row, column=column, padx=padx, pady=pady, sticky=sticky)
     return label
 
-def create_entry(parent, row, column, padx, pady):
-    entry = ctk.CTkEntry(parent)  # Use CTkEntry
-    entry.grid(row=row, column=column, padx=padx, pady=pady)
-    return entry
+def create_spinbox(parent, from_, to, row, column, padx, pady, default_value):
+    spinbox = tk.Spinbox(parent, from_=from_, to=to, width=3, font=("Helvetica", 12), format="%02.0f")
+    spinbox.grid(row=row, column=column, padx=padx, pady=pady)
+    spinbox.delete(0, tk.END)  # Clear the default value
+    spinbox.insert(0, default_value)  # Set the default value
+    return spinbox
 
 def create_button(parent, text, command, row, column, columnspan, padx, pady):
     button = ctk.CTkButton(parent, text=text, command=command)  # Use CTkButton
@@ -29,25 +31,34 @@ def main():
     root.title("WhatsApp Message Scheduler")
     
     phone_label = create_label(root, "Phone Number:", 0, 0, 10, 5)
-    phone_entry = create_entry(root, 0, 1, 10, 5)
+    phone_entry = ctk.CTkEntry(root)
+    phone_entry.grid(row=0, column=1, columnspan=2, padx=10, pady=5)
 
     message_label = create_label(root, "Message:", 1, 0, 10, 5)
-    message_entry = create_entry(root, 1, 1, 10, 5)
+    message_entry = ctk.CTkEntry(root, font=("Helvetica", 14), width=300, height=100)  # Increased size and font
+    message_entry.grid(row=1, column=1, columnspan=2, padx=10, pady=10)
 
     time_label = create_label(root, "Send at (HH:MM):", 2, 0, 10, 5)
-    hours_entry = create_entry(root, 2, 1, 10, 5)
-    minutes_entry = create_entry(root, 2, 2, 10, 5)
+    
+    # Frame for the time selection (clock interface)
+    time_frame = tk.Frame(root)
+    time_frame.grid(row=2, column=1, columnspan=2, padx=10, pady=5, sticky="w")
+
+    # Set the default time to 07:00 using Spinboxes
+    hours_spinbox = create_spinbox(time_frame, 0, 23, 0, 0, 5, 5, "07")
+    tk.Label(time_frame, text=":", font=("Helvetica", 12)).grid(row=0, column=1)
+    minutes_spinbox = create_spinbox(time_frame, 0, 59, 0, 2, 5, 5, "00")
 
     result_label = create_label(root, "", 4, 0, 10, 5, tk.W)
 
     def on_send_button_click():
         phone_number = phone_entry.get()
         message = message_entry.get()
-        hours = int(hours_entry.get())
-        minutes = int(minutes_entry.get())
+        hours = int(hours_spinbox.get())
+        minutes = int(minutes_spinbox.get())
         send_whatsapp_message(phone_number, message, hours, minutes, result_label)
 
-    send_button = create_button(root, "Send Message", on_send_button_click, 3, 0, 2, 10, 10)
+    send_button = create_button(root, "Send Message", on_send_button_click, 3, 0, 3, 10, 10)
 
     root.mainloop()
 
