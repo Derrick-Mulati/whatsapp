@@ -34,7 +34,7 @@ def load_contacts_from_csv():
                 contacts = {name: format_phone_number(phone) for name, phone in zip(df['Name'], df['Phone'])}
                 
                 # Update the dropdown menu
-                contact_menu['values'] = list(contacts.keys())
+                contact_menu.configure(values=list(contacts.keys()))
                 if contacts:
                     selected_contact.set(next(iter(contacts)))  # Reset to first contact
 
