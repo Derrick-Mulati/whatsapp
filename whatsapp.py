@@ -1,136 +1,159 @@
 import tkinter as tk
 from tkinter import filedialog, messagebox
-import customtkinter as ctk  # Correct import for customtkinter
+import customtkinter as ctk
 import pywhatkit
 import pandas as pd
+import datetime
 
-# Initialize an empty dictionary for contacts
-contacts = {}
+class WhatsAppSchedulerApp:
+    def __init__(self, root):
+        self.contacts = {}
+        self.scheduled_messages = []
 
-def format_phone_number(number):
-    """Formats phone numbers based on specific rules."""
-    number = number.strip()  # Remove any leading or trailing whitespace
-    if number.startswith("2"):
-        return f"+{number}"
-    elif number.startswith("7"):
-        return f"+254{number[1:]}"  # Replace the leading 7 with +254
-    elif number.startswith("0"):
-        return f"+254{number[1:]}"  # Replace the leading 0 with +254
-    else:
+        # Configure root
+        ctk.set_appearance_mode("dark")
+        ctk.set_default_color_theme("blue")
+        root.title("WhatsApp Scheduler")
+        root.geometry("600x500")
+        root.resizable(False, False)
+
+        # Layout: Header, Body, Footer
+        self.create_header(root)
+        self.create_body(root)
+        self.create_footer(root)
+
+    def create_header(self, root):
+        header_frame = ctk.CTkFrame(root)
+        header_frame.pack(fill="x", padx=10, pady=5)
+
+        title_label = ctk.CTkLabel(header_frame, text="WhatsApp Scheduler", font=("Arial", 18, "bold"))
+        title_label.pack()
+
+    def create_body(self, root):
+        body_frame = ctk.CTkFrame(root)
+        body_frame.pack(fill="both", expand=True, padx=10, pady=5)
+
+        # Left Panel: Contacts
+        self.create_contacts_section(body_frame)
+
+        # Right Panel: Message and Time
+        self.create_message_section(body_frame)
+
+    def create_contacts_section(self, parent):
+        contacts_frame = ctk.CTkFrame(parent, width=250)
+        contacts_frame.pack(side="left", fill="y", padx=5, pady=5)
+
+        ctk.CTkLabel(contacts_frame, text="Contacts", font=("Arial", 14, "bold")).pack(pady=5)
+
+        self.contacts_listbox = tk.Listbox(contacts_frame, height=15, bg="#2e2e2e", fg="white", font=("Arial", 12))
+        self.contacts_listbox.pack(fill="both", expand=True, padx=5, pady=5)
+
+        load_button = ctk.CTkButton(contacts_frame, text="Load Contacts", command=self.load_contacts)
+        load_button.pack(pady=5)
+
+    def create_message_section(self, parent):
+        message_frame = ctk.CTkFrame(parent)
+        message_frame.pack(side="right", fill="both", expand=True, padx=5, pady=5)
+
+        # Message Input
+        ctk.CTkLabel(message_frame, text="Message", font=("Arial", 14, "bold")).pack(pady=5)
+        self.message_entry = ctk.CTkTextbox(message_frame, height=100)
+        self.message_entry.pack(fill="x", padx=5, pady=5)
+
+        # Time Selection
+        ctk.CTkLabel(message_frame, text="Schedule Time", font=("Arial", 14, "bold")).pack(pady=5)
+        time_frame = tk.Frame(message_frame)
+        time_frame.pack(pady=5)
+
+        self.hours_spinbox = tk.Spinbox(time_frame, from_=0, to=23, width=3, font=("Arial", 12), format="%02.0f")
+        self.hours_spinbox.grid(row=0, column=0, padx=2)
+        tk.Label(time_frame, text=":", font=("Arial", 12)).grid(row=0, column=1)
+        self.minutes_spinbox = tk.Spinbox(time_frame, from_=0, to=59, width=3, font=("Arial", 12), format="%02.0f")
+        self.minutes_spinbox.grid(row=0, column=2, padx=2)
+
+        # Schedule Button
+        schedule_button = ctk.CTkButton(message_frame, text="Schedule Message", command=self.schedule_message)
+        schedule_button.pack(pady=10)
+
+        # Live Preview
+        ctk.CTkLabel(message_frame, text="Scheduled Messages", font=("Arial", 14, "bold")).pack(pady=5)
+        self.scheduled_listbox = tk.Listbox(message_frame, height=8, bg="#2e2e2e", fg="white", font=("Arial", 12))
+        self.scheduled_listbox.pack(fill="both", expand=True, padx=5, pady=5)
+
+    def create_footer(self, root):
+        footer_frame = ctk.CTkFrame(root)
+        footer_frame.pack(fill="x", padx=10, pady=5)
+
+        send_all_button = ctk.CTkButton(footer_frame, text="Send All Scheduled Messages", command=self.send_all_messages)
+        send_all_button.pack(pady=5)
+
+    def load_contacts(self):
+        """Load contacts from a CSV file."""
+        file_path = filedialog.askopenfilename(filetypes=[("CSV files", "*.csv")])
+        if file_path:
+            try:
+                df = pd.read_csv(file_path)
+                if 'Name' in df.columns and 'Phone' in df.columns:
+                    df['Phone'] = df['Phone'].apply(self.format_phone_number)
+                    self.contacts = dict(zip(df['Name'], df['Phone']))
+                    self.contacts_listbox.delete(0, tk.END)
+                    for name in self.contacts:
+                        self.contacts_listbox.insert(tk.END, name)
+                    messagebox.showinfo("Success", "Contacts loaded successfully!")
+                else:
+                    raise ValueError("CSV must contain 'Name' and 'Phone' columns.")
+            except Exception as e:
+                messagebox.showerror("Error", f"Failed to load contacts: {e}")
+
+    def format_phone_number(self, number):
+        """Format phone numbers to international format."""
+        number = number.strip()
+        if number.startswith("2"):
+            return f"+{number}"
+        elif number.startswith("7") or number.startswith("0"):
+            return f"+254{number[1:]}"
         return number
 
-def load_contacts_from_csv():
-    """Load contacts from a CSV file and update the dropdown menu."""
-    file_path = filedialog.askopenfilename(filetypes=[("CSV files", "*.csv")])
-    if file_path:
-        try:
-            # Load the CSV file into a pandas DataFrame
-            df = pd.read_csv(file_path)
-            
-            # Ensure the CSV has the correct columns: 'Name' and 'Phone'
-            if 'Name' in df.columns and 'Phone' in df.columns:
-                # Format and update the contacts dictionary
-                global contacts
-                contacts = {name: format_phone_number(phone) for name, phone in zip(df['Name'], df['Phone'])}
-                
-                # Update the dropdown menu
-                contact_menu.configure(values=list(contacts.keys()))
-                if contacts:
-                    selected_contact.set(next(iter(contacts)))  # Reset to first contact
+    def schedule_message(self):
+        """Schedule a message to send."""
+        selected_contact = self.contacts_listbox.get(tk.ACTIVE)
+        message = self.message_entry.get("1.0", "end").strip()
+        hours = int(self.hours_spinbox.get())
+        minutes = int(self.minutes_spinbox.get())
 
-                messagebox.showinfo("Success", "Contacts loaded successfully!")
-            else:
-                messagebox.showerror("Error", "CSV file must have 'Name' and 'Phone' columns.")
-        except Exception as e:
-            messagebox.showerror("Error", f"Failed to load contacts: {str(e)}")
+        if not selected_contact or not message:
+            messagebox.showwarning("Warning", "Please select a contact and write a message.")
+            return
 
-def send_whatsapp_message(phone_number, message, hours, minutes, result_label):
-    pywhatkit.sendwhatmsg(phone_number, message, hours, minutes)
-    result_label.config(text="Message sent successfully!")
+        if not self.is_future_time(hours, minutes):
+            messagebox.showwarning("Warning", "Please select a future time.")
+            return
 
-def create_label(parent, text, row, column, padx, pady, sticky=tk.W):
-    label = ctk.CTkLabel(parent, text=text)  # Use CTkLabel
-    label.grid(row=row, column=column, padx=padx, pady=pady, sticky=sticky)
-    return label
+        phone_number = self.contacts[selected_contact]
+        self.scheduled_messages.append((selected_contact, phone_number, message, hours, minutes))
+        self.scheduled_listbox.insert(tk.END, f"{selected_contact} @ {hours:02}:{minutes:02} - {message}")
+        self.message_entry.delete("1.0", "end")
 
-def create_spinbox(parent, from_, to, row, column, padx, pady, default_value):
-    spinbox = tk.Spinbox(parent, from_=from_, to=to, width=3, font=("Helvetica", 12), format="%02.0f")
-    spinbox.grid(row=row, column=column, padx=padx, pady=pady)
-    spinbox.delete(0, tk.END)  # Clear the default value
-    spinbox.insert(0, default_value)  # Set the default value
-    return spinbox
+    def is_future_time(self, hours, minutes):
+        now = datetime.datetime.now()
+        scheduled_time = now.replace(hour=hours, minute=minutes, second=0, microsecond=0)
+        return scheduled_time > now
 
-def create_button(parent, text, command, row, column, columnspan, padx, pady):
-    button = ctk.CTkButton(parent, text=text, command=command)  # Use CTkButton
-    button.grid(row=row, column=column, columnspan=columnspan, padx=padx, pady=pady)
-    return button
+    def send_all_messages(self):
+        """Send all scheduled messages."""
+        for contact, phone, message, hours, minutes in self.scheduled_messages:
+            try:
+                pywhatkit.sendwhatmsg(phone, message, hours, minutes)
+            except Exception as e:
+                messagebox.showerror("Error", f"Failed to send message to {contact}: {e}")
+
+        self.scheduled_listbox.delete(0, tk.END)
+        self.scheduled_messages.clear()
+        messagebox.showinfo("Success", "All messages sent!")
 
 def main():
-    ctk.set_appearance_mode("dark")  # Options: "light", "dark"
-    ctk.set_default_color_theme("blue")  # Other options: "green", "dark-blue"
-
-    root = ctk.CTk()  # Use CTk() to create the main window
-    root.title("WhatsApp Message Scheduler")
-
-    # Configure grid weights to center elements
-    root.grid_columnconfigure(0, weight=1)
-    root.grid_columnconfigure(1, weight=1)
-    root.grid_columnconfigure(2, weight=1)
-    root.grid_rowconfigure(0, weight=1)
-    root.grid_rowconfigure(1, weight=1)
-    root.grid_rowconfigure(2, weight=1)
-    root.grid_rowconfigure(3, weight=1)
-    root.grid_rowconfigure(4, weight=1)
-
-    # Load Contacts Button
-    load_contacts_button = create_button(root, "Load Contacts", load_contacts_from_csv, 0, 0, 3, 10, 10)
-    load_contacts_button.grid(row=0, column=0, columnspan=3, padx=10, pady=10, sticky="ew")
-
-    contact_label = create_label(root, "Select Contact:", 1, 0, 10, 5)
-    contact_label.grid(row=1, column=0, padx=10, pady=5, sticky="e")
-
-    # Dropdown menu to select a contact
-    global selected_contact, contact_menu
-    selected_contact = tk.StringVar(root)
-    selected_contact.set("Select a contact")  # Default value before loading contacts
-    contact_menu = ctk.CTkOptionMenu(root, variable=selected_contact, values=[])
-    contact_menu.grid(row=1, column=1, columnspan=2, padx=10, pady=5, sticky="ew")
-
-    message_label = create_label(root, "Message:", 2, 0, 10, 5)
-    message_label.grid(row=2, column=0, padx=10, pady=5, sticky="e")
-    
-    message_entry = ctk.CTkEntry(root, font=("Helvetica", 14), width=300, height=100)  # Increased size and font
-    message_entry.grid(row=2, column=1, columnspan=2, padx=10, pady=10, sticky="ew")
-
-    time_label = create_label(root, "Send at (HH:MM):", 3, 0, 10, 5)
-    time_label.grid(row=3, column=0, padx=10, pady=5, sticky="e")
-    
-    # Frame for the time selection (clock interface)
-    time_frame = tk.Frame(root)
-    time_frame.grid(row=3, column=1, columnspan=2, padx=10, pady=5, sticky="ew")
-
-    # Set the default time to 07:00 using Spinboxes
-    hours_spinbox = create_spinbox(time_frame, 0, 23, 0, 0, 5, 5, "07")
-    tk.Label(time_frame, text=":", font=("Helvetica", 12)).grid(row=0, column=1)
-    minutes_spinbox = create_spinbox(time_frame, 0, 59, 0, 2, 5, 5, "00")
-
-    result_label = create_label(root, "", 4, 0, 10, 5, tk.W)
-    result_label.grid(row=4, column=0, columnspan=3, padx=10, pady=5, sticky="ew")
-
-    def on_send_button_click():
-        contact_name = selected_contact.get()
-        phone_number = contacts.get(contact_name, None)
-        if phone_number:
-            message = message_entry.get()
-            hours = int(hours_spinbox.get())
-            minutes = int(minutes_spinbox.get())
-            send_whatsapp_message(phone_number, message, hours, minutes, result_label)
-        else:
-            result_label.config(text="Please select a contact.")
-
-    send_button = create_button(root, "Send Message", on_send_button_click, 4, 0, 3, 10, 10)
-    send_button.grid(row=4, column=0, columnspan=3, padx=10, pady=10, sticky="ew")
-
+    root = ctk.CTk()
+    app = WhatsAppSchedulerApp(root)
     root.mainloop()
 
 if __name__ == "__main__":
